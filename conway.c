@@ -1,11 +1,47 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-
 #include "conway.h"
 
-void set(Field *field, int x, int y, bool value) {
-    field->grid[y][x] = value;
+bool **new_grid(int width, int height) {
+    bool **grid = malloc(sizeof(bool *) * width);
+    for (int i = 0; i < width; i++)
+        grid[i] = malloc(sizeof(bool) * height);
+
+    for (int i = 0; i < width; i++)
+        for (int j = 0; j < height; j++)
+            grid[i][j] = false;
+
+    return grid;
+}
+
+void release_grid(bool **grid, int width, int height) {
+    if (grid) {
+        for (int i = 0; i < width; i++)
+            free(grid[i]);
+        free(grid);
+    }
+}
+
+void print_grid(bool **grid, int width, int height) {
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++)
+            printf("%c", grid[i][j] ? '*' : ' ');
+        printf("\n");
+    }
+}
+
+Field *new_field(int width, int height) {
+    Field *field = malloc(sizeof(Field));
+    field->width = width;
+    field->height = height;
+    field->grid = new_grid(width, height);
+    return field;
+}
+
+void release_field(Field *field) {
+    if (field) {
+        if (field->grid)
+            release_grid(field->grid, field->width, field->height);
+        free(field);
+    }
 }
 
 bool alive(Field *field, int x, int y) {
@@ -13,70 +49,28 @@ bool alive(Field *field, int x, int y) {
     x %= field->width;
     y += field->height;
     y %= field->height;
-    return field->grid[y][x];
+    return field->grid[x][y];
 }
 
 bool next(Field *field, int x, int y) {
-    int alive = 0;
+    int life = 0;
     for (int i = -1; i <= 1; i++)
         for (int j = -1; j <= 1; j++)
-            if ((i != 0 || j != 0) && field->alive(field, x, y))
-                alive++;
-    return alive == 3 || alive == 2 && field->alive(field, x, y);
-}
-
-void step(Life *life) {
-    for (int y = 0; y < life->height; y++)
-        for (int x = 0; x < life->width; x++)
-            life->second_field->set(life->second_field, x, y,
-                life->first_field->next(life->first_field, x, y));
-
-    Field *temp = life->first_field;
-    life->first_field = life->second_field;
-    life->second_field = temp;
-}
-
-Field *new_field(int width, int height) {
-    Field *field = malloc(sizeof(Field));
-    field->width = width;
-    field->height = height;
-    field->alive = alive;
-    field->next = next;
-    field->set = set;
-
-    bool **grid = malloc(sizeof(bool *) * width);
-    for (int i = 0; i < height; i++)
-        grid[i] = malloc(sizeof(bool) * height);
-    field->grid = grid;
-
-    return field;
-}
-
-void release_field(Field *field) {
-    if (field) {
-        if (field->grid) {
-            for (int i = 0; i < field->height; i++)
-                free(field->grid[i]);
-            free(field->grid);
-        }
-        free(field);
-    }
+            if ((i != 0 || j != 0) && alive(field, x + i, y + j))
+                ++life;
+    return life == 3 || (life == 2 && alive(field, x, y));
 }
 
 Life *new_life(int width, int height) {
     Life *life = malloc(sizeof(Life));
-    life->width = width;
-    life->height = height;
     life->first_field = new_field(width, height);
     life->second_field = new_field(width, height);
-    life->step = step;
-
-    srand((unsigned int) time(NULL));
+    life->width = width;
+    life->height = height;
 
     for (int i = 0; i < (width * height / 4); i++) {
-        int x = rand() % width;
-        int y = rand() % height;
-        life->first_field->set(life->first_field, x, y, true);
+        int x = arc4random_uniform(width), y = arc4random_uniform(height);
+        life->first_field->grid[x][y] = true;
     }
 
     return life;
@@ -92,10 +86,9 @@ void release_life(Life *life) {
     }
 }
 
-void print_grid(Life *life) {
-    for (int y = 0; y < life->height; y++) {
-        for (int x = 0; x < life->width; x++)
-            printf("%c", life->first_field->alive(life->first_field, x, y) ? '*' : ' ');
-        printf("\n");
-    }
+void step(Life *life) {
+    for (int i = 0; i < life->width; i++)
+        for (int j = 0; j < life->height; j++)
+            life->second_field->grid[i][j] = next(life->first_field, i, j);
+    swap(Field *, life->first_field, life->second_field);
 }
