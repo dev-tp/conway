@@ -1,5 +1,3 @@
-#include <time.h>
-
 #include "conway.h"
 
 void msleep(unsigned long seconds) {
@@ -12,7 +10,6 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < 10; i++) {
         step(life);
         print_grid(life);
-        // printf("- - - - - - - - - - - - - - - - - - - -\n");
         msleep(1);
         system(clear);
     }
