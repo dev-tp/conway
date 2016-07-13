@@ -20,10 +20,10 @@ void release_grid(bool **grid, int width, int height) {
     }
 }
 
-void print_grid(bool **grid, int width, int height) {
-    for (int i = 0; i < width; i++) {
-        for (int j = 0; j < height; j++)
-            printf("%c", grid[i][j] ? '*' : ' ');
+void print_grid(Life *life) {
+    for (int i = 0; i < life->width; i++) {
+        for (int j = 0; j < life->height; j++)
+            printf("%c", life->first_field->grid[i][j] ? '*' : ' ');
         printf("\n");
     }
 }
@@ -68,8 +68,9 @@ Life *new_life(int width, int height) {
     life->width = width;
     life->height = height;
 
+    srand((unsigned int) time(NULL));
     for (int i = 0; i < (width * height / 4); i++) {
-        int x = arc4random_uniform(width), y = arc4random_uniform(height);
+        int x = rand() % width, y = rand() % height;
         life->first_field->grid[x][y] = true;
     }
 

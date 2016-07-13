@@ -8,11 +8,13 @@
 #define false 0
 #define swap(type, a, b) { type temp = a; a = b; b = temp; }
 
-typedef int bool;
+#ifdef _WIN32
+    #define clear "cls"
+#else
+    #define clear "clear"
+#endif
 
-bool **new_grid(int width, int height);
-void release_grid(bool **grid, int width, int height);
-void print_grid(bool **grid, int width, int heigth);
+typedef int bool;
 
 typedef struct Field {
     bool **grid;
@@ -32,5 +34,9 @@ typedef struct Life {
 Life *new_life(int width, int height);
 void release_life(Life *life);
 void step(Life *life);
+
+bool **new_grid(int width, int height);
+void release_grid(bool **grid, int width, int height);
+void print_grid(Life *life);
 
 #endif
