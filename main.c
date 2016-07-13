@@ -11,10 +11,10 @@ int main(int argc, char *argv[]) {
     Life *life = new_life(15, 40);
     for (int i = 0; i < 10; i++) {
         step(life);
-        print_grid(life->first_field->grid, life->width, life->height);
+        print_grid(life);
         // printf("- - - - - - - - - - - - - - - - - - - -\n");
-        // msleep(1);
-        // system("clear");
+        msleep(1);
+        system(clear);
     }
     release_life(life);
     return 0;
